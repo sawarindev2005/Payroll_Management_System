@@ -4,6 +4,8 @@ require('dotenv').config();
 const employeeRoutes = require('./routes/employeeRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const salaryRecordRoutes = require('./routes/salaryRecordRoutes');
+const claimRequestRoutes = require('./routes/claimRequestRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +22,8 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/salary-records', salaryRecordRoutes);
+app.use('/api/claim-requests', claimRequestRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

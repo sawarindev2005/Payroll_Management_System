@@ -2,13 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 const { verifyToken, requireAdmin } = require('../middleware/authMiddleware');
-
-function withNetSalary(employee) {
-    return {
-        ...employee,
-        net_salary: Number(employee.base_salary) + Number(employee.bonus) - Number(employee.deduction),
-    };
-}
+const { withNetSalary } = require('../utils/salary');
 
 // GET /api/employees/me - พนักงานดูเงินเดือนของตัวเอง (ต้อง login แต่ไม่ต้องเป็น admin)
 router.get('/me', verifyToken, async (req, res) => {
