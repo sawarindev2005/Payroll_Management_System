@@ -21,6 +21,11 @@ export default function RequestsPage() {
     const [rejectNote, setRejectNote] = useState('');
     const [rejectError, setRejectError] = useState('');
 
+    const [approveModal, setApproveModal] = useState(null); // request being approved
+    const [slipImage, setSlipImage] = useState(null);
+    const [approveNote, setApproveNote] = useState('');
+    const [approveError, setApproveError] = useState('');
+
     async function fetchRequests() {
         const res = await apiFetch('/claim-requests');
         setRequests(await res.json());
@@ -30,9 +35,38 @@ export default function RequestsPage() {
         fetchRequests();
     }, []);
 
-    async function handleApprove(id) {
-        if (!window.confirm('ยืนยันการอนุมัติคำขอนี้?')) return;
-        await apiFetch(`/claim-requests/${id}/approve`, { method: 'PUT' });
+    function openApproveModal(request) {
+        setSlipImage(null);
+        setApproveNote('');
+        setApproveError('');
+        setApproveModal(request);
+    }
+
+    async function handleApproveSubmit(event) {
+        event.preventDefault();
+        setApproveError('');
+
+        if (!slipImage) {
+            setApproveError('กรุณาแนบรูปสลิปโอนเงิน');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('slip_image', slipImage);
+        formData.append('admin_note', approveNote);
+
+        const res = await apiFetch(`/claim-requests/${approveModal.id}/approve`, {
+            method: 'PUT',
+            body: formData,
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            setApproveError(data.message || 'อนุมัติคำขอไม่สำเร็จ');
+            return;
+        }
+
+        setApproveModal(null);
         fetchRequests();
     }
 
@@ -95,7 +129,7 @@ export default function RequestsPage() {
                                     <>
                                         <button
                                             className="btn btn-primary btn-sm"
-                                            onClick={() => handleApprove(r.id)}
+                                            onClick={() => openApproveModal(r)}
                                         >
                                             อนุมัติ
                                         </button>
@@ -111,6 +145,43 @@ export default function RequestsPage() {
                         />
                     ))}
                 </div>
+            )}
+
+            {approveModal && (
+                <Modal title="อนุมัติคำขอ">
+                    <form onSubmit={handleApproveSubmit}>
+                        <Field label="แนบรูปสลิปโอนเงิน" htmlFor="approve-slip-image" wide>
+                            <input
+                                id="approve-slip-image"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                onChange={(e) => setSlipImage(e.target.files[0] || null)}
+                                required
+                            />
+                        </Field>
+                        <Field label="หมายเหตุ" htmlFor="approve-note" wide>
+                            <textarea
+                                id="approve-note"
+                                placeholder="ระบุหมายเหตุ (ถ้ามี)"
+                                value={approveNote}
+                                onChange={(e) => setApproveNote(e.target.value)}
+                            />
+                        </Field>
+                        <div className="form-actions">
+                            <button type="submit" className="btn btn-primary" disabled={!slipImage}>
+                                ยืนยันอนุมัติ
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                onClick={() => setApproveModal(null)}
+                            >
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </form>
+                    <p className="error-text">{approveError}</p>
+                </Modal>
             )}
 
             {rejectModal && (

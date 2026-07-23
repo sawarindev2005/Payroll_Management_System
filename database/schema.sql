@@ -58,11 +58,18 @@ CREATE TABLE IF NOT EXISTS claim_requests (
     type ENUM('advance', 'reimbursement') NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     reason TEXT NOT NULL,
+    qr_image_path VARCHAR(255) NULL, -- รูป QR พร้อมเพย์ที่พนักงานแนบตอนยื่นคำขอ
     status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     reviewed_by INT NULL,
     reviewed_at TIMESTAMP NULL DEFAULT NULL,
     admin_note VARCHAR(255) NULL,
+    slip_image_path VARCHAR(255) NULL, -- รูปสลิปโอนเงินที่แอดมินแนบตอนอนุมัติ
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
 );
+
+-- ถ้ามีฐานข้อมูลเดิมอยู่แล้ว (ตารางถูกสร้างไปก่อนเพิ่มฟีเจอร์แนบรูป) ให้รันเพิ่มเองใน Workbench:
+-- ALTER TABLE claim_requests
+--   ADD COLUMN qr_image_path VARCHAR(255) NULL AFTER reason,
+--   ADD COLUMN slip_image_path VARCHAR(255) NULL AFTER admin_note;

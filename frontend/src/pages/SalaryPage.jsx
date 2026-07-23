@@ -5,7 +5,7 @@ import Field from '../components/Field';
 import SalaryRecordCard, { formatBaht } from './SalaryRecordCard';
 import ClaimRequestCard from './ClaimRequestCard';
 
-const EMPTY_REQUEST_FORM = { type: 'advance', amount: '', reason: '' };
+const EMPTY_REQUEST_FORM = { type: 'advance', amount: '', reason: '', qrImage: null };
 
 export default function SalaryPage() {
     const [me, setMe] = useState(null);
@@ -15,6 +15,7 @@ export default function SalaryPage() {
 
     const [requestForm, setRequestForm] = useState(EMPTY_REQUEST_FORM);
     const [requestError, setRequestError] = useState('');
+    const [qrInputKey, setQrInputKey] = useState(0);
 
     async function loadMySalary() {
         const res = await apiFetch('/employees/me');
@@ -45,16 +46,20 @@ export default function SalaryPage() {
         event.preventDefault();
         setRequestError('');
 
-        const payload = {
-            type: requestForm.type,
-            amount: parseFloat(requestForm.amount),
-            reason: requestForm.reason,
-        };
+        if (!requestForm.qrImage) {
+            setRequestError('กรุณาแนบรูป QR code พร้อมเพย์');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('type', requestForm.type);
+        formData.append('amount', parseFloat(requestForm.amount));
+        formData.append('reason', requestForm.reason);
+        formData.append('qr_image', requestForm.qrImage);
 
         const res = await apiFetch('/claim-requests', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: formData,
         });
 
         const data = await res.json();
@@ -65,6 +70,7 @@ export default function SalaryPage() {
         }
 
         setRequestForm(EMPTY_REQUEST_FORM);
+        setQrInputKey((k) => k + 1);
         loadMyRequests();
     }
 
@@ -149,6 +155,17 @@ export default function SalaryPage() {
                         id="request-reason"
                         value={requestForm.reason}
                         onChange={(e) => setRequestForm({ ...requestForm, reason: e.target.value })}
+                        required
+                    />
+                </Field>
+
+                <Field label="แนบรูป QR code พร้อมเพย์" htmlFor="request-qr-image" wide>
+                    <input
+                        key={qrInputKey}
+                        id="request-qr-image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => setRequestForm({ ...requestForm, qrImage: e.target.files[0] || null })}
                         required
                     />
                 </Field>

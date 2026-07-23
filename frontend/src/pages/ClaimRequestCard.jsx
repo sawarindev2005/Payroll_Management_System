@@ -1,4 +1,5 @@
 import StatusBadge from '../components/StatusBadge';
+import AuthImage from '../components/AuthImage';
 import { formatBaht } from './SalaryRecordCard';
 
 const TYPE_LABELS = {
@@ -59,6 +60,31 @@ export default function ClaimRequestCard({ request, showEmployeeName, showReview
                     </>
                 )}
             </div>
+
+            {(request.qr_image_path || request.slip_image_path) && (
+                <div className="item-card-rows claim-attachments">
+                    {request.qr_image_path && (
+                        <div className="item-card-row">
+                            <span>QR พร้อมเพย์</span>
+                            <AuthImage
+                                path={`/claim-requests/${request.id}/qr-image`}
+                                alt="QR พร้อมเพย์"
+                                className="claim-thumb"
+                            />
+                        </div>
+                    )}
+                    {request.slip_image_path && (
+                        <div className="item-card-row">
+                            <span>สลิปโอนเงิน</span>
+                            <AuthImage
+                                path={`/claim-requests/${request.id}/slip-image`}
+                                alt="สลิปโอนเงิน"
+                                className="claim-thumb"
+                            />
+                        </div>
+                    )}
+                </div>
+            )}
 
             {request.type === 'advance' && request.advances_this_month?.length > 0 && (
                 <div className="item-card-rows">
