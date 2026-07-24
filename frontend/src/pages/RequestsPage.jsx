@@ -5,6 +5,7 @@ import BottomNav from '../components/BottomNav';
 import Modal from '../components/Modal';
 import Field from '../components/Field';
 import ClaimRequestCard from './ClaimRequestCard';
+import { formatBaht } from './SalaryRecordCard';
 
 const FILTERS = [
     { status: '', label: 'ทั้งหมด' },
@@ -149,6 +150,30 @@ export default function RequestsPage() {
 
             {approveModal && (
                 <Modal title="อนุมัติคำขอ">
+                    {approveModal.type === 'advance' && approveModal.remaining_salary !== undefined && (
+                        <div className="item-card-rows" style={{ marginBottom: '1rem' }}>
+                            <div className="item-card-row">
+                                <span>เงินเดือนคงเหลือก่อนอนุมัติ</span>
+                                <span>{formatBaht(approveModal.remaining_salary)}</span>
+                            </div>
+                            <div className="item-card-row">
+                                <span>จำนวนที่จะเบิก</span>
+                                <span>{formatBaht(approveModal.amount)}</span>
+                            </div>
+                            <div className="item-card-row">
+                                <span>เงินเดือนคงเหลือหลังอนุมัติ</span>
+                                <strong
+                                    className={
+                                        approveModal.remaining_salary - approveModal.amount < 0
+                                            ? 'text-negative'
+                                            : ''
+                                    }
+                                >
+                                    {formatBaht(approveModal.remaining_salary - approveModal.amount)}
+                                </strong>
+                            </div>
+                        </div>
+                    )}
                     <form onSubmit={handleApproveSubmit}>
                         <Field label="แนบรูปสลิปโอนเงิน" htmlFor="approve-slip-image" wide>
                             <input

@@ -4,7 +4,9 @@ import LoginPage from './pages/LoginPage';
 import EmployeesPage from './pages/EmployeesPage';
 import PayrollPage from './pages/PayrollPage';
 import RequestsPage from './pages/RequestsPage';
-import SalaryPage from './pages/SalaryPage';
+import SalaryOverviewPage from './pages/SalaryOverviewPage';
+import SalaryHistoryPage from './pages/SalaryHistoryPage';
+import SalaryRequestsPage from './pages/SalaryRequestsPage';
 
 export default function App() {
     return (
@@ -40,7 +42,23 @@ export default function App() {
                 path="/salary"
                 element={
                     <ProtectedRoute role="employee">
-                        <SalaryPage />
+                        <SalaryOverviewPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/salary/history"
+                element={
+                    <ProtectedRoute role="employee">
+                        <SalaryHistoryPage />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/salary/requests"
+                element={
+                    <ProtectedRoute role="employee">
+                        <SalaryRequestsPage />
                     </ProtectedRoute>
                 }
             />

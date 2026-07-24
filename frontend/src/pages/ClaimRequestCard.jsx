@@ -7,6 +7,11 @@ const TYPE_LABELS = {
     reimbursement: 'เบิกค่าใช้จ่าย',
 };
 
+export const TYPE_NOTES = {
+    advance: 'หักเงินเดือนเดือนนี้ทันทีที่อนุมัติ',
+    reimbursement: 'ไม่กระทบเงินเดือน จ่ายคืนแยกต่างหาก',
+};
+
 function formatDate(value, withTime) {
     if (!value) return '';
     return withTime ? new Date(value).toLocaleString('th-TH') : new Date(value).toLocaleDateString('th-TH');
@@ -21,6 +26,9 @@ export default function ClaimRequestCard({ request, showEmployeeName, showReview
                         <div className="item-card-title">{request.employee_name}</div>
                     )}
                     <div className="item-card-subtitle">{TYPE_LABELS[request.type] || request.type}</div>
+                    {TYPE_NOTES[request.type] && (
+                        <div className="item-card-subtitle">{TYPE_NOTES[request.type]}</div>
+                    )}
                 </div>
                 <StatusBadge status={request.status} />
             </div>

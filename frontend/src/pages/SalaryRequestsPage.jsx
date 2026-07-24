@@ -1,35 +1,19 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../api/client';
 import Topbar from '../components/Topbar';
+import BottomNav from '../components/BottomNav';
 import Field from '../components/Field';
-import SalaryRecordCard, { formatBaht } from './SalaryRecordCard';
-import ClaimRequestCard from './ClaimRequestCard';
+import ClaimRequestCard, { TYPE_NOTES } from './ClaimRequestCard';
 
 const EMPTY_REQUEST_FORM = { type: 'advance', amount: '', reason: '', qrImage: null };
 
-export default function SalaryPage() {
-    const [me, setMe] = useState(null);
-    const [meError, setMeError] = useState('');
-    const [history, setHistory] = useState([]);
+export default function SalaryRequestsPage() {
     const [myRequests, setMyRequests] = useState([]);
 
     const [requestForm, setRequestForm] = useState(EMPTY_REQUEST_FORM);
     const [requestError, setRequestError] = useState('');
     const [qrInputKey, setQrInputKey] = useState(0);
-
-    async function loadMySalary() {
-        const res = await apiFetch('/employees/me');
-        if (!res.ok) {
-            setMeError('ไม่พบข้อมูลเงินเดือนของคุณ');
-            return;
-        }
-        setMe(await res.json());
-    }
-
-    async function loadSalaryHistory() {
-        const res = await apiFetch('/salary-records/me');
-        if (res.ok) setHistory(await res.json());
-    }
 
     async function loadMyRequests() {
         const res = await apiFetch('/claim-requests/me');
@@ -37,8 +21,6 @@ export default function SalaryPage() {
     }
 
     useEffect(() => {
-        loadMySalary();
-        loadSalaryHistory();
         loadMyRequests();
     }, []);
 
@@ -76,55 +58,21 @@ export default function SalaryPage() {
 
     return (
         <div className="page-content">
-            <Topbar title="เงินเดือนของฉัน" />
-
-            <div className="salary-card">
-                {meError ? (
-                    <p className="error-text">{meError}</p>
-                ) : !me ? (
-                    <p>กำลังโหลดข้อมูล...</p>
-                ) : (
+            <Topbar
+                title="เบิกเงิน"
+                navLinks={
                     <>
-                        <div className="salary-row">
-                            <span>ชื่อพนักงาน</span>
-                            <strong>{me.name}</strong>
-                        </div>
-                        <div className="salary-row">
-                            <span>ตำแหน่ง</span>
-                            <strong>{me.position}</strong>
-                        </div>
-                        <div className="salary-row">
-                            <span>เงินเดือนฐาน</span>
-                            <strong>{formatBaht(me.base_salary)} บาท</strong>
-                        </div>
-                        <div className="salary-row">
-                            <span>โบนัส/เงินเพิ่ม</span>
-                            <strong className="text-positive">+{formatBaht(me.bonus)} บาท</strong>
-                        </div>
-                        <div className="salary-row">
-                            <span>รายการหัก</span>
-                            <strong className="text-negative">-{formatBaht(me.deduction)} บาท</strong>
-                        </div>
-                        <div className="salary-row salary-net">
-                            <span>เงินเดือนสุทธิ</span>
-                            <strong>{formatBaht(me.net_salary)} บาท</strong>
-                        </div>
+                        <Link to="/salary" className="btn btn-outline">
+                            เงินเดือนของฉัน
+                        </Link>
+                        <Link to="/salary/history" className="btn btn-outline">
+                            ประวัติเงินเดือน
+                        </Link>
                     </>
-                )}
-            </div>
+                }
+            />
 
-            <h2 style={{ marginTop: '1.5rem' }}>ประวัติเงินเดือน</h2>
-            {history.length === 0 ? (
-                <p className="empty-state">ยังไม่มีประวัติเงินเดือน</p>
-            ) : (
-                <div className="card-list">
-                    {history.map((rec) => (
-                        <SalaryRecordCard key={rec.id} record={rec} />
-                    ))}
-                </div>
-            )}
-
-            <form className="card" style={{ marginTop: '1.5rem' }} onSubmit={handleRequestSubmit}>
+            <form className="card" onSubmit={handleRequestSubmit}>
                 <h2>ยื่นคำขอเบิก</h2>
 
                 <Field label="ประเภท" htmlFor="request-type">
@@ -136,6 +84,7 @@ export default function SalaryPage() {
                         <option value="advance">เบิกเงินล่วงหน้า</option>
                         <option value="reimbursement">เบิกค่าใช้จ่าย</option>
                     </select>
+                    <div className="item-card-subtitle">{TYPE_NOTES[requestForm.type]}</div>
                 </Field>
 
                 <Field label="จำนวนเงิน" htmlFor="request-amount">
@@ -189,6 +138,8 @@ export default function SalaryPage() {
                     ))}
                 </div>
             )}
+
+            <BottomNav />
         </div>
     );
 }

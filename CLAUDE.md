@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-Login + employee payroll CRUD app. `backend/` is an Express + MySQL API (auth, employee CRUD, user-account management, monthly salary history, advance/reimbursement claim requests). `frontend/` is a Vite + React SPA (5 routes: login, admin employee dashboard, admin per-employee salary history, admin claim-request approval queue, employee self-service salary view) — mobile-first design using card lists (no `<table>` anywhere) plus a bottom nav bar for admin pages on narrow screens.
+Login + employee payroll CRUD app. `backend/` is an Express + MySQL API (auth, employee CRUD, user-account management, monthly salary history, advance/reimbursement claim requests). `frontend/` is a Vite + React SPA (7 routes: login, admin employee dashboard, admin per-employee salary history, admin claim-request approval queue, employee salary overview, employee salary history, employee claim requests) — mobile-first design using card lists (no `<table>` anywhere) plus a role-aware bottom nav bar on narrow screens (admin and employee each get their own tab set).
 
-Not yet done: a "change password" feature, and stronger delete confirmations/password validation. See `PROGRESS.md` for the current task list.
+Not yet done: stronger delete confirmations and password validation on the backend. See `PROGRESS.md` for the current task list.
 
 ## Commands
 
@@ -48,13 +48,13 @@ Both dev servers must be running simultaneously for local development (backend o
 
 ### Frontend (`frontend/`, Vite + React, plain CSS — no UI/icon/form library)
 - `src/main.jsx` — mounts `<App/>` inside `<BrowserRouter>` + `<AuthProvider>`.
-- `src/App.jsx` — routes: `/login`, `/` (admin), `/payroll/:employeeId` (admin), `/requests` (admin), `/salary` (employee), each admin/employee route wrapped in `<ProtectedRoute role="...">`.
+- `src/App.jsx` — routes: `/login`, `/` (admin), `/payroll/:employeeId` (admin), `/requests` (admin), `/salary` (employee), `/salary/history` (employee), `/salary/requests` (employee), each admin/employee route wrapped in `<ProtectedRoute role="...">`.
 - `src/context/AuthContext.jsx` — `user`/`token` state backed by `localStorage` (same keys as the old vanilla app: `salary_app_token`/`salary_app_user`), `login()`/`logout()`.
 - `src/api/client.js` — `apiFetch(path, options)` attaches the JWT bearer header and hard-redirects to `/login` on a 401 (mirrors the old `authFetch`); `API_URL` comes from `import.meta.env.VITE_API_URL`.
-- `src/components/` — `ProtectedRoute` (role gate + redirect, replaces old `requireRole`), `Topbar` (title + optional back-link + optional desktop nav links + username badge + logout), `BottomNav` (mobile-only, `<768px`, admin pages: พนักงาน/คำขอเบิก), `Modal` (generic overlay used by all 3 modals), `StatusBadge`, `Field` (label+input pair, used by every form).
+- `src/components/` — `ProtectedRoute` (role gate + redirect, replaces old `requireRole`), `Topbar` (title + optional back-link + optional desktop nav links + username badge + logout), `BottomNav` (mobile-only, `<768px`, reads `user.role` from `AuthContext` to pick its tab set: admin gets พนักงาน/คำขอเบิก, employee gets เงินเดือน/ประวัติ/เบิกเงิน), `Modal` (generic overlay used by all modals), `StatusBadge`, `Field` (label+input pair, used by every form).
 - `src/pages/EmployeesPage.jsx` (+`EmployeeCard.jsx`) — admin dashboard: employee CRUD form + card list (not a table), create/remove login account via `Modal`.
-- `src/pages/PayrollPage.jsx` (+`SalaryRecordCard.jsx`, shared with `SalaryPage`) — admin per-employee salary history card list, "add new month" form, edit-a-month via `Modal`.
-- `src/pages/RequestsPage.jsx` (+`ClaimRequestCard.jsx`, shared with `SalaryPage`) — admin claim queue, client-side status filter chips, approve (`window.confirm`) / reject (`Modal` with a note) actions.
-- `src/pages/SalaryPage.jsx` — employee-only: current salary summary, salary history card list, claim-request form, own-requests card list.
+- `src/pages/PayrollPage.jsx` (+`SalaryRecordCard.jsx`, shared with the employee salary pages) — admin per-employee salary history card list, "add new month" form, edit-a-month via `Modal`.
+- `src/pages/RequestsPage.jsx` (+`ClaimRequestCard.jsx`, shared with `SalaryRequestsPage`) — admin claim queue, client-side status filter chips, approve (`Modal`, shows before/after remaining-salary projection for `advance`-type requests, requires a slip upload) / reject (`Modal` with a note) actions.
+- `src/pages/SalaryOverviewPage.jsx`, `SalaryHistoryPage.jsx`, `SalaryRequestsPage.jsx` — employee-only, split across `/salary`, `/salary/history`, `/salary/requests` (formerly one long `SalaryPage.jsx`) so each screen is a single scroll on mobile: current salary summary, salary history card list, and claim-request form + own-requests card list respectively. Each links to the other two via `Topbar navLinks` (desktop) and `BottomNav` (mobile).
 - `src/styles/index.css` — all styling: design tokens (colors/spacing/radius as CSS custom properties), `.card-list`/`.item-card` (the card-list pattern used everywhere lists used to be tables — `grid-template-columns: repeat(auto-fill, minmax(280px,1fr))`, naturally 1 column on mobile without a separate breakpoint-specific DOM), `.btn`/`.btn-group`, `.bottom-nav` (mobile-only nav, shown via `@media (max-width: 767px)`).
 - No `<table>` elements anywhere — every list is a responsive card grid, per explicit user request (not a table that just shrinks/collapses at small widths).
